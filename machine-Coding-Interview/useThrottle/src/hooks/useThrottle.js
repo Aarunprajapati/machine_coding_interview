@@ -1,27 +1,21 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 
-const useThrottle = (func, delay) => {
-  const [throttleValues, setThrottleValues] = useState(func);
+const useThrottle = (fn, delay) => {
+  const lastCall = useRef(0);
 
-  const lastExecution = useRef(0);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
+  const throttledFn = useCallback(
+    (...args) => {
       const now = Date.now();
-      const isElapsed = now - lastExecution.current;
 
-      if (isElapsed >= delay) {
-        setThrottleValues(func);
-        lastExecution.current = now;
+      if (now - lastCall.current >= delay) {
+        lastCall.current = now;
+        fn(...args);
       }
-    }, delay);
+    },
+    [fn, delay]
+  );
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [func, delay]);
-
-  return throttleValues;
+  return throttledFn;
 };
 
 export default useThrottle;
